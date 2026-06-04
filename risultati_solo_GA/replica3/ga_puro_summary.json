@@ -1,0 +1,70 @@
+{
+  "tecnica": "GA_puro_simulatore_reale",
+  "seed": 456,
+  "pop_size": 20,
+  "n_gen": 5,
+  "total_sims": 100,
+  "sims_eseguite": 92,
+  "best_dist_reale": 0.0,
+  "mean_dist_reale": 0.9239,
+  "scenari_critici": 24,
+  "hit_rate": 0.2609,
+  "history": [
+    {
+      "gen": 0,
+      "best": 0.121,
+      "mean": 1.5227,
+      "min_below_threshold": 1
+    },
+    {
+      "gen": 1,
+      "best": 0.121,
+      "mean": 1.05225,
+      "min_below_threshold": 2
+    },
+    {
+      "gen": 2,
+      "best": 0.037,
+      "mean": 0.8598000000000001,
+      "min_below_threshold": 4
+    },
+    {
+      "gen": 3,
+      "best": 0.0,
+      "mean": 0.5137,
+      "min_below_threshold": 10
+    },
+    {
+      "gen": 4,
+      "best": 0.0,
+      "mean": 0.37174999999999997,
+      "min_below_threshold": 14
+    }
+  ],
+  "bounds": {
+    "obs_l": [
+      3.0,
+      6.0
+    ],
+    "obs_w": [
+      3.0,
+      6.0
+    ],
+    "obs_h": [
+      3.0,
+      5.0
+    ],
+    "obs_x": [
+      -12.0,
+      -5.0
+    ],
+    "obs_y": [
+      -2.0,
+      6.0
+    ],
+    "obs_r": [
+      0.0,
+      180.0
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+robot:
+  port: px4_sitl #{sitl, ros, cf}
+  
+simulation:
+  simulator: gazebo #{gazebo,jmavsim,ros} 
+  speed: 1
+  headless: true
+
+mission:
+  commands_file: samples/flights/manual1.ulg
+
+assertion:
+  log_file: samples/flights/manual1.ulg
+  variable: trajectory

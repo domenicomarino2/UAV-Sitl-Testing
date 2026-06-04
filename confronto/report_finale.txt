@@ -1,0 +1,49 @@
+════════════════════════════════════════════════════════════════════════════════
+   CONFRONTO FINALE — 3 STRATEGIE A PARITÀ DI BUDGET
+   DOE accoppiato: 3 repliche (seed 42, 123, 456)
+   Soglia crash: distanza == 0.0m (solo collisioni reali)
+════════════════════════════════════════════════════════════════════════════════
+
+METRICA                                  Random         GA Puro        GA+Surr       
+────────────────────────────────────────────────────────────────────────────────
+Budget simulazioni reali                 100            92 (→100)*     100 (50+50)   
+
+>> CRASH (dist = 0.0m) — normalizzati su 100 simulazioni
+────────────────────────────────────────────────────────────────────────────────
+Numero medio di crash (/100 sim)         1.333 ± 0.471  7.625 ± 3.855  23.333 ± 13.275
+Crash rate (%)                           1.340% ± 0.481 7.625% ± 3.855 23.569% ± 13.409
+
+>> DISTANZA MINIMA REALE (m) — sull'intero budget
+────────────────────────────────────────────────────────────────────────────────
+Media                                    1.775m ± 0.062 1.065m ± 0.111 0.976m ± 0.047
+Mediana                                  1.747m ± 0.054 0.982m ± 0.167 0.502m ± 0.260
+Minima trovata                           0.000m ± 0.000 0.000m ± 0.000 0.000m ± 0.000
+
+>> QUALITÀ SURROGATO GRADIENTBOOSTING
+────────────────────────────────────────────────────────────────────────────────
+MAE cross-validation                     —              —              0.460m ± 0.045
+R² cross-validation                      —              —              0.513 ± 0.008 
+MAE validazione (pred vs reale)          —              —              0.185m ± 0.110
+RMSE validazione                         —              —              0.265m ± 0.135
+
+════════════════════════════════════════════════════════════════════════════════
+
+>> CRASH PER SINGOLA REPLICA
+────────────────────────────────────────────────────────────────────────────────
+Replica        Random         GA Puro        GA+Surr                   MAE surr
+               (/100)         (/92→100)*     (train+val=100)          
+────────────────────────────────────────────────────────────────────────────────
+Rep 1 (s=42)       1           4 (4.4)     41  (1 train + 40 val)     0.035m
+Rep 2 (s=123)      2          12 (13.0)     20  (2 train + 18 val)     0.228m
+Rep 3 (s=456)      1           5 (5.4)      9  (0 train + 9 val)      0.294m
+════════════════════════════════════════════════════════════════════════════════
+
+>> INTERPRETAZIONE — crash assoluti
+────────────────────────────────────────────────────────────────────────────────
+  GA Puro vs Random:        +471.8%
+  GA + Surrogato vs Random: +1650.0%
+  GA + Surrogato vs GA Puro: +206.0%
+
+* GA Puro esegue 92 sim reali (elitismo); crash normalizzati
+  a 100 sim per confronto equo: crash_norm = crash_raw × 100/92
+════════════════════════════════════════════════════════════════════════════════

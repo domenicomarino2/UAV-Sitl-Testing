@@ -1,0 +1,19 @@
+
+╔══════════════════════════════════════════════════════════════╗
+║   VALIDAZIONE RAMO pipeline_R3_50 — RISULTATI FINALI
+╠══════════════════════════════════════════════════════════════╣
+║  Candidati validati:       50 / 50
+║  Errori simulazione:        0
+╠══════════════════════════════════════════════════════════════╣
+║  SCENARI CRITICI (dist ≤ 0.0m):
+║    Hit rate reale:        18.0%  (9/50)
+║
+║  DISTANZA MINIMA REALE:
+║    Media:                 0.305 m
+║    Minima:                0.000 m
+║    Massima:               0.918 m
+╠══════════════════════════════════════════════════════════════╣
+║  ACCURATEZZA SURROGATO (predetto vs reale):
+║    MAE:                   0.294 m
+║    RMSE:                  0.376 m
+╚══════════════════════════════════════════════════════════════╝

@@ -1,0 +1,36 @@
+{
+  "surrogate": "models/pipeline_r1_50/gradientboosting.pkl",
+  "pop_size": 200,
+  "n_gen": 300,
+  "top_k": 50,
+  "best_pred_dist_m": 0.0,
+  "worst_pred_dist_m": 0.5896,
+  "elapsed_s": 2.3,
+  "random_seed": 123,
+  "bounds": {
+    "obs_l": [
+      3.0,
+      6.0
+    ],
+    "obs_w": [
+      3.0,
+      6.0
+    ],
+    "obs_h": [
+      3.0,
+      5.0
+    ],
+    "obs_x": [
+      -12.0,
+      -5.0
+    ],
+    "obs_y": [
+      -2.0,
+      6.0
+    ],
+    "obs_r": [
+      0.0,
+      180.0
+    ]
+  }
+}

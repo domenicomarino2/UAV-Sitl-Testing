@@ -1,0 +1,4 @@
+model,mae_mean,mae_std,rmse_mean,rmse_std,r2_mean,r2_std
+RandomForest,0.4836,0.1253,0.5973,0.1353,0.4026,0.1422
+GradientBoosting,0.4233,0.1005,0.5089,0.12,0.5148,0.2672
+NeuralNetwork,0.5065,0.1434,0.6119,0.1547,0.2383,0.5979

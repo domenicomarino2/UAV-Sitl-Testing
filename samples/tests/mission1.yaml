@@ -1,0 +1,35 @@
+robot:
+  port: px4_ros #{sitl, ros, cf}
+  params_file: samples/flights/mission1-params.csv 
+  mission_file: samples/flights/mission1.plan
+
+simulation:
+  simulator: ros #{gazebo, jmavsim, ros} 
+  speed: 1
+  headless: true
+  obstacles:
+  - size:
+      l: 5
+      w: 5
+      h: 5
+    position:
+      x: -30
+      y: 25
+      z: 0
+      r: 0
+
+  # wind:
+  #   velocity_mean: 3.0
+  #   velocity_max: 5.0
+  #   direction: [1, 0, 0]
+
+mission:
+  commands_file: samples/flights/mission1-commands.csv
+
+assertion:
+  log_file: samples/flights/mission1.ulg
+  variable: trajectory
+
+# agent:
+#   engine: local # {k8s, docker, local}
+#   count: 1
