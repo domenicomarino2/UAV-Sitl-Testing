@@ -394,11 +394,6 @@ In 2024 International Conference on Software Engineering (ICSE)
 - **Aerialist**: https://github.com/skhatiri/Aerialist
 - **Docker image**: `skhatiri/aerialist:latest`
 
-### Sottomissione e licenza
-
-Codice rilasciato sotto licenza **MIT** (vedi `LICENSE.md`).
-
----
 
 ## 👥 Autori
 
