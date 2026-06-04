@@ -100,6 +100,7 @@ indipendenti (seed 42, 123, 456) per quantificare la variabilità inter-replica.
        │   - Variabilità inter-replica                                  │
        │   - Accuratezza surrogato (pred vs reale)                      │
        |   - Confronto prestazioni surrogati                            |
+       |   - Confornto diversity per  scenari di crash                  |
        └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -370,7 +371,7 @@ python3 scripts/confronto.py --output confronto/
 | `04_surrogate_accuracy.png` | Predetto vs reale per ogni replica |
 | `06_surrogate_cv_metrics.png` | MAE / R² in CV dei surrogati |
 | `07_evolution_ga_puro.png` | Convergenza del GA puro per generazione |
-| `08_diversity_3strategie.png` | confornto della diveristy per gli scenari di crash tra i 3 approcci |
+| `08_diversity_3strategie.png` | confornto della diversity per gli scenari di crash tra i 3 approcci |
 | `09_diversity_ga_surr_per_replica.png` | analisi della diversity per le singole repliche relative a surr+ga |
 | `metriche_aggregate.csv` | Metriche per replica + media e std |
 | `report_finale.txt` | Riepilogo testuale con interpretazione |
