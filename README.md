@@ -9,8 +9,8 @@
 2. [Architettura della soluzione](#2-architettura-della-soluzione)
 3. [Requisiti di sistema](#3-requisiti-di-sistema)
 4. [Struttura del repository](#4-struttura-del-repository)
-5. [Pipeline completa — comandi passo-passo](#6-pipeline-completa--comandi-passo-passo)
-6. [Riferimenti](#9-riferimenti)
+5. [Pipeline completa — comandi passo-passo](#5-pipeline-completa--comandi-passo-passo)
+6. [Riferimenti](#6-riferimenti)
 
 ---
 
