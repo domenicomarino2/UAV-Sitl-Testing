@@ -187,6 +187,7 @@ Aerialist-UAV-Testing/
 ├── samples/tests/                   # Template missione + YAML generati
 │   └── mission1.yaml                # Template base della missione
 └── 
+```
 ---
 
 ## 5. Pipeline completa — comandi passo-passo
