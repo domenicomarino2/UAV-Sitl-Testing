@@ -361,7 +361,7 @@ python3 scripts/algoritmo_genetico.py \
 python3 scripts/confronto.py --output confronto/
 ```
 
-**Genera 7 grafici + 2 file riepilogativi**:
+**Genera 9 grafici + 2 file riepilogativi**:
 
 | File | Contenuto |
 |------|-----------|
