@@ -112,7 +112,7 @@ https://github.com/skhatiri/Aerialist/tree/master
 
 ### Librerie Python
 
-Tutte le dipendenze sono in `requirements.txt`:
+Tutte le dipendenze sono in `requirements.txt`
 
 
 ## 4. Struttura del repository
