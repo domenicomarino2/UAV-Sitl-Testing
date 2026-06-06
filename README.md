@@ -122,7 +122,6 @@ Aerialist-UAV-Testing/
 │
 ├── README.md                        # Questo file
 ├── LICENSE.md                       # MIT License
-├── requirements.txt                 # Dipendenze Python
 ├── scripts/                         # ★ TUTTI GLI SCRIPT DELLA PIPELINE
 │   ├── generatore_dataset_random.py    # Genera dataset (random o training surrogato)
 │   ├── addestra_surrogato_r1.py        # Addestra surrogati per Replica 1
