@@ -1,6 +1,6 @@
 # UAV-Sitl-Tesing-on-Aerialist
 
-**Progetto finale del corso di AI System Engineering**
+**Progetto finale del corso di AI Systems Engineering**
 
 
 ## 📋 Indice
