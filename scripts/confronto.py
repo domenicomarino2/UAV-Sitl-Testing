@@ -40,8 +40,16 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from scipy.spatial.distance import pdist
 
 warnings.filterwarnings("ignore")
+
+# ════════════════════════════════════════════════════════════════════════════
+# COSTANTI DIVERSITY
+# ════════════════════════════════════════════════════════════════════════════
+FEAT_COLS = ["obs_l", "obs_w", "obs_h", "obs_x", "obs_y", "obs_r"]
+BOUNDS_LO = np.array([3.0,  3.0,  3.0, -12.0, -2.0,   0.0])
+BOUNDS_HI = np.array([6.0,  6.0,  5.0,  -5.0,  6.0, 180.0])
 
 # ════════════════════════════════════════════════════════════════════════════
 # CONFIGURAZIONE PERCORSI
@@ -268,15 +276,14 @@ def aggregate(values):
 # ════════════════════════════════════════════════════════════════════════════
 
 def plot_crash_3strategie(rand_reps, ga_puro_reps, ga_surr_reps, output_dir):
-    """Bar chart: n. crash medio (assoluto) e crash rate (%) per strategia."""
-    fig, axes = plt.subplots(1, 2, figsize=(13, 6))
+    """Bar chart: n. crash medio normalizzato su 100 sim per tutte le strategie."""
+    fig, ax = plt.subplots(figsize=(9, 6))
 
-    labels = ["Random Search\n(100 sim)", "GA Puro\n(92 sim)",
-              "GA + Surrogato\n(50+50 sim)"]
+    labels = ["Random Search\n(100 sim)", "GA Puro\n(100 sim)*",
+              "GA + Surrogato\n(100 sim)"]
     colors_list = [COLORS["random"], COLORS["ga_puro"], COLORS["ga_surr"]]
 
-    # ── Panel sinistra: numero assoluto di crash ─────────────────────────
-    ax = axes[0]
+   
     n_crash_r = [r["n_crash"] for r in rand_reps]
     n_crash_p = [r["n_crash"] for r in ga_puro_reps]
     n_crash_s = [r["n_crash"] for r in ga_surr_reps]
@@ -292,46 +299,25 @@ def plot_crash_3strategie(rand_reps, ga_puro_reps, ga_surr_reps, output_dir):
                   error_kw=dict(linewidth=2))
     for bar, val, std in zip(bars, means, stds):
         ax.text(bar.get_x() + bar.get_width()/2,
-                bar.get_height() + std + 0.5,
-                f"{val:.1f}", ha="center", fontsize=13, fontweight="bold")
+                bar.get_height() + std + 0.8,
+                f"{val:.1f}", ha="center", fontsize=14, fontweight="bold")
 
-    ax.set_ylabel("Numero di crash (dist = 0.0m)", fontsize=11)
-    ax.set_title("Crash assoluti per strategia\n(media ± std su 3 repliche)",
+    ax.set_ylabel("Numero medio di crash (dist = 0.0m)\nnormalizzato su 100 simulazioni",
+                  fontsize=11)
+    ax.set_title("Crash medi per strategia — normalizzati su 100 sim\n"
+                 "(media ± std su 3 repliche)",
                  fontsize=12, fontweight="bold")
     ymax = max(m + s for m, s in zip(means, stds))
-    ax.set_ylim(0, ymax * 1.35 + 2)
+    ax.set_ylim(0, ymax * 1.35 + 3)
     ax.grid(True, axis="y", alpha=0.3)
 
-    # ── Panel destra: crash rate (%) ─────────────────────────────────────
-    ax = axes[1]
-    cr_r = [r["crash_rate"] * 100 for r in rand_reps]
-    cr_p = [r["crash_rate"] * 100 for r in ga_puro_reps]
-    cr_s = [r["crash_rate"] * 100 for r in ga_surr_reps]
+    # Nota a piè di grafico
+    ax.text(0.5, -0.12,
+            "* GA Puro esegue 92 sim reali (elitismo); i crash sono normalizzati a 100 sim "
+            "per confronto equo",
+            ha="center", fontsize=8, fontstyle="italic", color="gray",
+            transform=ax.transAxes)
 
-    m_r2, s_r2 = aggregate(cr_r)
-    m_p2, s_p2 = aggregate(cr_p)
-    m_s2, s_s2 = aggregate(cr_s)
-    means2 = [m_r2, m_p2, m_s2]
-    stds2  = [s_r2, s_p2, s_s2]
-
-    bars2 = ax.bar(labels, means2, color=colors_list, edgecolor="black",
-                   width=0.55, yerr=stds2, capsize=8,
-                   error_kw=dict(linewidth=2))
-    for bar, val, std in zip(bars2, means2, stds2):
-        ax.text(bar.get_x() + bar.get_width()/2,
-                bar.get_height() + std + 1,
-                f"{val:.1f}%", ha="center", fontsize=13, fontweight="bold")
-
-    ax.set_ylabel("Crash rate — % di sim con dist = 0.0m", fontsize=11)
-    ax.set_title("Crash rate per strategia\n(% sul budget totale)",
-                 fontsize=12, fontweight="bold")
-    ymax2 = max(m + s for m, s in zip(means2, stds2))
-    ax.set_ylim(0, ymax2 * 1.35 + 5)
-    ax.grid(True, axis="y", alpha=0.3)
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0f}%"))
-
-    plt.suptitle("Crash assoluti (dist = 0.0m) — confronto a parità di budget",
-                 fontsize=13, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = output_dir / "01_crash_3strategie.png"
     plt.savefig(out, dpi=150, bbox_inches="tight")
@@ -395,12 +381,12 @@ def plot_per_replica_crash(rand_reps, ga_puro_reps, ga_surr_reps, output_dir):
                   "Replica 3\n(seed 456)"]
 
     n_r = [r["n_crash"] for r in rand_reps]
-    n_p = [r["n_crash"] for r in ga_puro_reps]
+    n_p = [r["n_crash"] * (100.0 / r["n_valid"]) for r in ga_puro_reps]
     n_s = [r["n_crash"] for r in ga_surr_reps]
 
     bars_r = ax.bar(x - width, n_r, width, label="Random (100 sim)",
                     color=COLORS["random"], edgecolor="black", alpha=0.85)
-    bars_p = ax.bar(x,         n_p, width, label="GA Puro (92 sim)",
+    bars_p = ax.bar(x,         n_p, width, label="GA Puro (100 sim)*",
                     color=COLORS["ga_puro"], edgecolor="black", alpha=0.85)
     bars_s = ax.bar(x + width, n_s, width, label="GA + Surrogato (100 sim)",
                     color=COLORS["ga_surr"], edgecolor="black", alpha=0.85)
@@ -409,7 +395,7 @@ def plot_per_replica_crash(rand_reps, ga_puro_reps, ga_surr_reps, output_dir):
         for bar in bars:
             h = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2, h + 0.3,
-                    f"{int(h)}", ha="center", fontsize=11, fontweight="bold")
+                    f"{h:.1f}", ha="center", fontsize=11, fontweight="bold")
 
     for vals, color, lab in [
         (n_r, COLORS["random"],  "Media Random"),
@@ -422,13 +408,19 @@ def plot_per_replica_crash(rand_reps, ga_puro_reps, ga_surr_reps, output_dir):
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels_rep, fontsize=11)
-    ax.set_ylabel("Numero di crash (dist = 0.0m)", fontsize=11)
-    ax.set_title("Crash per singola replica (variabilità inter-replica)",
+    ax.set_ylabel("Numero di crash (dist = 0.0m)\nnormalizzato su 100 sim", fontsize=11)
+    ax.set_title("Crash per singola replica — normalizzati su 100 sim\n"
+                 "(variabilità inter-replica)",
                  fontsize=12, fontweight="bold")
     ax.legend(fontsize=9, loc="upper left", ncol=2)
     ymax = max(max(n_r), max(n_p), max(n_s))
     ax.set_ylim(0, ymax * 1.35 + 3)
     ax.grid(True, axis="y", alpha=0.3)
+
+    ax.text(0.5, -0.12,
+            "* GA Puro: 92 sim reali → crash normalizzati a 100 sim (×100/92)",
+            ha="center", fontsize=8, fontstyle="italic", color="gray",
+            transform=ax.transAxes)
 
     plt.tight_layout()
     out = output_dir / "03_per_replica_crash.png"
@@ -463,7 +455,7 @@ def plot_surrogate_accuracy(ga_surr_reps, output_dir):
         mae = np.abs(pred - real).mean()
         r2 = (1 - np.sum((real - pred) ** 2) /
               np.sum((real - real.mean()) ** 2)) if np.var(real) > 0 else 0
-        ax.text(0.05, 0.95, f"MAE = {mae:.3f}m\nN = {n}",
+        ax.text(0.05, 0.95, f"MAE = {mae:.3f}m\nR² = {r2:.3f}\nN = {n}",
                 transform=ax.transAxes, fontsize=10,
                 verticalalignment="top",
                 bbox=dict(facecolor="white", alpha=0.8, edgecolor="black"))
@@ -632,13 +624,16 @@ def genera_report(rand_reps, ga_puro_reps, ga_surr_reps, cv_reps, output_dir):
             return "—"
         return f"{m:.3f}{unit} ± {s:.3f}"
 
-    # Aggregazione metriche
+    # Aggregazione metriche — GA Puro normalizzato a 100 sim
     r_n_crash    = aggregate([r["n_crash"] for r in rand_reps])
-    p_n_crash    = aggregate([r["n_crash"] for r in ga_puro_reps])
+    p_n_crash_raw = aggregate([r["n_crash"] for r in ga_puro_reps])
+    p_n_crash    = aggregate([r["n_crash"] * (100.0 / r["n_valid"])
+                              for r in ga_puro_reps])
     s_n_crash    = aggregate([r["n_crash"] for r in ga_surr_reps])
 
     r_cr_rate    = aggregate([r["crash_rate"] * 100 for r in rand_reps])
-    p_cr_rate    = aggregate([r["crash_rate"] * 100 for r in ga_puro_reps])
+    p_cr_rate    = aggregate([r["n_crash"] / r["n_valid"] * 100
+                              for r in ga_puro_reps])
     s_cr_rate    = aggregate([r["crash_rate"] * 100 for r in ga_surr_reps])
 
     r_mean       = aggregate([r["dist_mean"]   for r in rand_reps])
@@ -668,13 +663,13 @@ def genera_report(rand_reps, ga_puro_reps, ga_surr_reps, cv_reps, output_dir):
     lines.append("")
     lines.append(f"{'METRICA':<40} {'Random':<14} {'GA Puro':<14} {'GA+Surr':<14}")
     lines.append("─" * 80)
-    lines.append(f"{'Budget simulazioni reali':<40} {'100':<14} {'92':<14} "
+    lines.append(f"{'Budget simulazioni reali':<40} {'100':<14} {'92 (→100)*':<14} "
                  f"{'100 (50+50)':<14}")
     lines.append("")
 
-    lines.append(">> CRASH ASSOLUTI (dist = 0.0m)")
+    lines.append(">> CRASH (dist = 0.0m) — normalizzati su 100 simulazioni")
     lines.append("─" * 80)
-    lines.append(f"{'Numero medio di crash':<40} "
+    lines.append(f"{'Numero medio di crash (/100 sim)':<40} "
                  f"{fmt(*r_n_crash):<14} {fmt(*p_n_crash):<14} "
                  f"{fmt(*s_n_crash):<14}")
     lines.append(f"{'Crash rate (%)':<40} "
@@ -713,18 +708,21 @@ def genera_report(rand_reps, ga_puro_reps, ga_surr_reps, cv_reps, output_dir):
     lines.append("─" * 80)
     lines.append(f"{'Replica':<14} {'Random':<14} {'GA Puro':<14} "
                  f"{'GA+Surr':<25} {'MAE surr'}")
-    lines.append(f"{'':14} {'(/100)':<14} {'(/92)':<14} "
+    lines.append(f"{'':14} {'(/100)':<14} {'(/92→100)*':<14} "
                  f"{'(train+val=100)':<25}")
     lines.append("─" * 80)
     seeds = [42, 123, 456]
     for i, (r, p, s, sd) in enumerate(zip(rand_reps, ga_puro_reps,
                                             ga_surr_reps, seeds)):
+        # GA Puro: crash reali e normalizzati a 100
+        p_raw = p['n_crash']
+        p_norm = p['n_crash'] * (100.0 / p['n_valid'])
         gas_str = f"{s['n_crash']:>2}  ({s['n_crash_train']} train + " \
                   f"{s['n_crash_val']} val)"
         lines.append(
             f"{'Rep '+str(i+1)+' (s='+str(sd)+')':<14} "
             f"{r['n_crash']:>5}          "
-            f"{p['n_crash']:>5}          "
+            f"{p_raw:>2} ({p_norm:.1f})     "
             f"{gas_str:<25} "
             f"{s['mae_val']:>6.3f}m"
         )
@@ -740,6 +738,9 @@ def genera_report(rand_reps, ga_puro_reps, ga_surr_reps, cv_reps, output_dir):
     if not np.isnan(p_n_crash[0]) and p_n_crash[0] > 0:
         gain_sp = (s_n_crash[0] / p_n_crash[0] - 1) * 100
         lines.append(f"  GA + Surrogato vs GA Puro: {gain_sp:+.1f}%")
+    lines.append("")
+    lines.append("* GA Puro esegue 92 sim reali (elitismo); crash normalizzati")
+    lines.append("  a 100 sim per confronto equo: crash_norm = crash_raw × 100/92")
     lines.append("═" * 80)
 
     report = "\n".join(lines)
@@ -765,6 +766,7 @@ def salva_metriche_csv(rand_reps, ga_puro_reps, ga_surr_reps, cv_reps, output_di
             "rs_dist_min":   round(r["dist_min"],   3),
             "gap_n_total":    p["n_total"],
             "gap_n_crash":    p["n_crash"],
+            "gap_n_crash_norm100": round(p["n_crash"] * (100.0 / p["n_valid"]), 1),
             "gap_crash_rate": round(p["crash_rate"], 4),
             "gap_dist_mean":  round(p["dist_mean"],  3),
             "gap_dist_min":   round(p["dist_min"],   3),
@@ -792,6 +794,210 @@ def salva_metriche_csv(rand_reps, ga_puro_reps, ga_surr_reps, cv_reps, output_di
     out = output_dir / "metriche_aggregate.csv"
     df.to_csv(out, index=False)
     print(f"   📄 Metriche CSV → {out.name}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# DIVERSITY — Pairwise Euclidean Distance sugli scenari di crash
+# ════════════════════════════════════════════════════════════════════════════
+
+def _normalize(df_crashes):
+    """
+    Normalizza le 6 feature dell'ostacolo in [0,1] rispetto ai bounds globali.
+    Restituisce np.ndarray (N × 6).
+    """
+    X = df_crashes[FEAT_COLS].values.astype(float)
+    return (X - BOUNDS_LO) / (BOUNDS_HI - BOUNDS_LO)
+
+
+def _pairwise(X_norm):
+    """
+    Restituisce tutti i valori di distanza euclidea tra coppie (scipy.pdist).
+    None se meno di 2 scenari.
+    """
+    if X_norm is None or len(X_norm) < 2:
+        return None
+    return pdist(X_norm, metric="euclidean")
+
+
+def _load_crashes_random(csv_path):
+    df = pd.read_csv(csv_path)
+    return df[df["distanza_minima_m"] == 0.0][FEAT_COLS].dropna()
+
+
+def _load_crashes_ga_puro(csv_path):
+    df = pd.read_csv(csv_path)
+    return df[df["distanza_minima_m"] == 0.0][FEAT_COLS].dropna()
+
+
+def _load_crashes_ga_surr_val(val_csv):
+    """Solo crash da validazione GA (distanza_reale_m == 0.0), NON da training."""
+    df = pd.read_csv(val_csv)
+    return df[df["distanza_reale_m"] == 0.0][FEAT_COLS].dropna()
+
+
+def plot_diversity_3strategie(output_dir):
+    """
+    Boxplot della pairwise Euclidean distance normalizzata per le 3 strategie.
+    Ogni box mostra la distribuzione di TUTTE le N*(N-1)/2 distanze tra coppie
+    di scenari di crash, aggregati sulle 3 repliche.
+
+    - Random Search:  crash da dataset_random_rN.csv
+    - GA Puro:        crash da risultati_solo_GA/replicaN/tutte_le_simulazioni.csv
+    - GA+Surrogato:   crash da ga_results/pipeline_rN_50/validazione_risultati.csv
+                      (solo distanza_reale_m == 0.0, NO training)
+    """
+    # ── Raccogli scenari crash per strategia (aggregato su 3 repliche) ──────
+    crashes_r, crashes_p, crashes_s = [], [], []
+    for i in range(3):
+        crashes_r.append(_load_crashes_random(RANDOM_CSVS[i]))
+        crashes_p.append(_load_crashes_ga_puro(GA_PURO_CSVS[i]))
+        crashes_s.append(_load_crashes_ga_surr_val(VAL_CSVS[i]))
+
+    df_r = pd.concat(crashes_r, ignore_index=True)
+    df_p = pd.concat(crashes_p, ignore_index=True)
+    df_s = pd.concat(crashes_s, ignore_index=True)
+
+    # ── Calcola pairwise distances ──────────────────────────────────────────
+    pw_r = _pairwise(_normalize(df_r)) if len(df_r) >= 2 else None
+    pw_p = _pairwise(_normalize(df_p)) if len(df_p) >= 2 else None
+    pw_s = _pairwise(_normalize(df_s)) if len(df_s) >= 2 else None
+
+    labels_info = [
+        (f"Random Search\n({len(df_r)} crash su 3 rep.)",
+         pw_r, COLORS["random"]),
+        (f"GA Puro\n({len(df_p)} crash su 3 rep.)",
+         pw_p, COLORS["ga_puro"]),
+        (f"GA + Surrogato\n({len(df_s)} crash val. su 3 rep.)",
+         pw_s, COLORS["ga_surr"]),
+    ]
+
+    # ── Plot ────────────────────────────────────────────────────────────────
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    valid = [(lbl, pw, c) for lbl, pw, c in labels_info if pw is not None]
+    if not valid:
+        ax.text(0.5, 0.5, "Nessun dato disponibile",
+                ha="center", va="center", transform=ax.transAxes)
+    else:
+        data_plot  = [pw for _, pw, _ in valid]
+        lbls_plot  = [lbl for lbl, _, _ in valid]
+        color_plot = [c for _, _, c in valid]
+
+        bp = ax.boxplot(data_plot, labels=lbls_plot, patch_artist=True,
+                        widths=0.5,
+                        medianprops=dict(color="black", linewidth=2.5),
+                        flierprops=dict(marker="o", markersize=3, alpha=0.3))
+        for box, c in zip(bp["boxes"], color_plot):
+            box.set_facecolor(c)
+            box.set_alpha(0.65)
+
+        # Scatter jitter + annotazioni media
+        for pos, (pw, c) in enumerate([(pw, c) for _, pw, c in valid], start=1):
+            # Sottocampiona se troppi punti (>500) per non appesantire il grafico
+            jitter_data = pw if len(pw) <= 500 else \
+                np.random.choice(pw, 500, replace=False)
+            xs = np.random.normal(pos, 0.07, size=len(jitter_data))
+            ax.scatter(xs, jitter_data, color=c, alpha=0.25, s=10, zorder=3)
+            ax.text(pos, np.mean(pw) + 0.01,
+                    f"μ={np.mean(pw):.3f}\nn={len(pw)}",
+                    ha="center", fontsize=9, color="darkred", fontweight="bold")
+
+    ax.set_ylabel("Distanza euclidea normalizzata [0,1]", fontsize=11)
+    ax.set_xlabel("Strategia", fontsize=11)
+    ax.set_title("Diversity degli scenari di crash — Pairwise Euclidean Distance\n"
+                 "(features normalizzate in [0,1] rispetto ai bounds)",
+                 fontsize=12, fontweight="bold")
+    ax.grid(True, axis="y", alpha=0.3)
+    
+
+    plt.tight_layout()
+    out = output_dir / "08_diversity_3strategie.png"
+    plt.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close()
+
+    # Stampa riepilogo testuale
+    print(f"   📊 {out.name}")
+    print(f"      Random:       {len(df_r):>3} crash → "
+          f"{len(pw_r) if pw_r is not None else 0:>5} coppie  "
+          f"μ={np.mean(pw_r):.3f}" if pw_r is not None else "      Random: N/A")
+    print(f"      GA Puro:      {len(df_p):>3} crash → "
+          f"{len(pw_p) if pw_p is not None else 0:>5} coppie  "
+          f"μ={np.mean(pw_p):.3f}" if pw_p is not None else "      GA Puro: N/A")
+    print(f"      GA+Surrogato: {len(df_s):>3} crash → "
+          f"{len(pw_s) if pw_s is not None else 0:>5} coppie  "
+          f"μ={np.mean(pw_s):.3f}" if pw_s is not None else "      GA+Surr: N/A")
+
+
+def plot_diversity_ga_surr_per_replica(output_dir):
+    """
+    Boxplot della pairwise Euclidean distance degli scenari di crash da GA+Surrogato,
+    una box per replica. Mostra come varia la diversity dei crash trovati nelle
+    3 repliche.
+    Solo crash da validazione (distanza_reale_m == 0.0), NON da training.
+    """
+    seeds = [42, 123, 456]
+    all_pw = []
+    all_labels = []
+    all_colors = ["#1f77b4", "#ff7f0e", "#2ca02c"]
+    n_crashes = []
+
+    for i in range(3):
+        df_s = _load_crashes_ga_surr_val(VAL_CSVS[i])
+        n_crashes.append(len(df_s))
+        pw = _pairwise(_normalize(df_s)) if len(df_s) >= 2 else None
+        all_pw.append(pw)
+        lbl = f"Replica {i+1}\n(seed {seeds[i]})\n{len(df_s)} crash val."
+        all_labels.append(lbl)
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+
+    valid_idx  = [i for i, pw in enumerate(all_pw) if pw is not None]
+    data_plot  = [all_pw[i] for i in valid_idx]
+    lbls_plot  = [all_labels[i] for i in valid_idx]
+    color_plot = [all_colors[i] for i in valid_idx]
+
+    if not data_plot:
+        ax.text(0.5, 0.5, "Nessun dato disponibile",
+                ha="center", va="center", transform=ax.transAxes)
+    else:
+        bp = ax.boxplot(data_plot, labels=lbls_plot, patch_artist=True,
+                        widths=0.5,
+                        medianprops=dict(color="black", linewidth=2.5),
+                        flierprops=dict(marker="o", markersize=3, alpha=0.3))
+        for box, c in zip(bp["boxes"], color_plot):
+            box.set_facecolor(c)
+            box.set_alpha(0.65)
+
+        # Scatter + annotazione media e n_coppie
+        for pos, (pw, c) in enumerate(zip(data_plot, color_plot), start=1):
+            jitter_data = pw if len(pw) <= 500 else \
+                np.random.choice(pw, 500, replace=False)
+            xs = np.random.normal(pos, 0.07, size=len(jitter_data))
+            ax.scatter(xs, jitter_data, color=c, alpha=0.30, s=12, zorder=3)
+            ax.text(pos, np.mean(pw) + 0.01,
+                    f"μ={np.mean(pw):.3f}\n{len(pw)} coppie",
+                    ha="center", fontsize=9, color="darkred", fontweight="bold")
+
+    ax.set_ylabel("Distanza euclidea normalizzata [0,1]", fontsize=11)
+    ax.set_xlabel("Replica", fontsize=11)
+    ax.set_title("Diversity per replica — GA + Surrogato\n"
+                 "Pairwise Euclidean Distance degli scenari di crash in validazione",
+                 fontsize=12, fontweight="bold")
+    ax.grid(True, axis="y", alpha=0.3)
+    
+
+    plt.tight_layout()
+    out = output_dir / "09_diversity_ga_surr_per_replica.png"
+    plt.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"   📊 {out.name}")
+    for i, pw in enumerate(all_pw):
+        n_c = n_crashes[i]
+        if pw is not None:
+            print(f"      Rep {i+1} (s={seeds[i]}): "
+                  f"{n_c} crash → {len(pw)} coppie  μ={np.mean(pw):.3f}")
+        else:
+            print(f"      Rep {i+1} (s={seeds[i]}): {n_c} crash → N/A (< 2)")
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -833,6 +1039,9 @@ def main():
     plot_feature_importance(FEAT_IMP_CSVS, output_dir)
     plot_surrogate_cv_metrics(cv_reps, output_dir)
     plot_ga_puro_evolution(ga_puro_reps, output_dir)
+    print("\n📐 Diversity degli scenari di crash...")
+    plot_diversity_3strategie(output_dir)
+    plot_diversity_ga_surr_per_replica(output_dir)
 
     print("\n📄 Report e metriche aggregate...")
     genera_report(rand_reps, ga_puro_reps, ga_surr_reps, cv_reps, output_dir)
